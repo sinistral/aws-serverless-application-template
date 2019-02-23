@@ -208,7 +208,7 @@ Resources:
         - Key: Name
           Value:
             Fn::Sub: ${AWS::StackName}-cb-pr
-      TimeoutInMinutes: 5
+      TimeoutInMinutes: 15
       Triggers:
         Webhook: true
 
@@ -242,7 +242,7 @@ Resources:
         - Key: Name
           Value:
             Fn::Sub: ${AWS::StackName}-cp
-      TimeoutInMinutes: 5
+      TimeoutInMinutes: 15
 
   CloudFormationPackageCodeBuildProject:
     Type: AWS::CodeBuild::Project
