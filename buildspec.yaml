@@ -1,0 +1,33 @@
+---
+version: 0.2
+
+phases:
+
+  install:
+    commands:
+      - curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+      - apt-get install -y nodejs
+      - |
+        wget -O /usr/local/bin/boot \
+          https://github.com/boot-clj/boot-bin/releases/download/2.7.2/boot.sh \
+          && chmod ugo+x /usr/local/bin/boot
+      - BOOT_AS_ROOT=yes
+
+  build:
+    commands:
+      - make ${GOAL}
+
+  post_build:
+    commands:
+      - mkdir -p codebuild-artifacts
+      - mv target/ssapp.zip codebuild-artifacts
+
+cache:
+  paths:
+    - /root/.m2/**/*
+
+artifacts:
+
+  base-directory: codebuild-artifacts
+  files: ['**/*']
+  name: ssapp

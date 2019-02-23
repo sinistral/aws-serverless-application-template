@@ -1,0 +1,44 @@
+---
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - apt-get update
+      - apt-get install jq
+  pre_build:
+    commands:
+      # Verify the environment variables required by the build.
+      - echo ${APPLICATION_NAME:?The name of the application being built is required} > /dev/null
+      - echo ${TEMPLATE_BUCKET:?An S3 bucket name is required in order to sync templates to S3} > /dev/null
+
+      - mkdir -p target
+      - |
+        for artifact_dir in $(env | grep CODEBUILD_SRC_DIR_ | cut -d "=" -f 2); do
+          mkdir -p target
+          cp -Rv ${artifact_dir}/* target
+        done
+      - cf_tmpl_dir=cloudformation/${APPLICATION_NAME}/template
+  build:
+    commands:
+      - |
+        if [ "X${TEMPLATE_PREFIX}" = "X" ]; then
+          s3path=${CODEBUILD_BUILD_ID}
+        else
+          s3path=${TEMPLATE_PREFIX}/${CODEBUILD_BUILD_ID}
+        fi
+      - make validate
+      - |
+        aws --region ${AWS_REGION} cloudformation package \
+          --s3-bucket ${TEMPLATE_BUCKET} \
+          --s3-prefix ${s3path}/cloudformation-package/${APPLICATION_NAME} \
+          --output-template-file target/${cf_tmpl_dir}/${APPLICATION_NAME}.yaml \
+          --template-file ${cf_tmpl_dir}/${APPLICATION_NAME}.yaml
+  post_build:
+    commands:
+      - 'echo "\nTemplate URL: https://s3.${AWS_REGION}.amazonaws.com/${TEMPLATE_BUCKET}/${s3path}/$(find ${cf_tmpl_dir} -name ${APPLICATION_NAME}.yaml -print)"'
+
+artifacts:
+  base-directory: target/cloudformation/${APPLICATION_NAME}
+  files:
+    - "**/*"

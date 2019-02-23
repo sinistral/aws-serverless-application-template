@@ -1,0 +1,4 @@
+
+{:require [ssapp.aws.lambda]
+ :boot-aws-lambda-kit/handler {:fn ssapp.aws.lambda/handler :as handler}
+ :compiler-options {:target :nodejs}}

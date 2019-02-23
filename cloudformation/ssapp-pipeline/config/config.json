@@ -1,0 +1,26 @@
+[
+  {
+    "ParameterKey": "ApplicationName",
+    "ParameterValue": "ssapp"
+  },
+  {
+    "ParameterKey": "BootstrapStackName",
+    "ParameterValue": "bootstrap"
+  },
+  {
+    "ParameterKey": "GitHubPersonalAccessTokenSecretName",
+    "ParameterValue": "github-personal-access-token"
+  },
+  {
+    "ParameterKey": "GitHubUser",
+    "ParameterValue": "sinistral"
+  },
+  {
+    "ParameterKey": "GitHubRepo",
+    "ParameterValue": "aws-serverless-application-template"
+  },
+  {
+    "ParameterKey": "GitHubRepoUrl",
+    "ParameterValue": "https://github.com/sinistral/aws-serverless-application-template.git"
+  }
+]
