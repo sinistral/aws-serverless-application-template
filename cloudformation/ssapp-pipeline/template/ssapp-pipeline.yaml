@@ -50,10 +50,45 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Action:
-                  - "*"
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
                 Effect: Allow
                 Resource:
-                  - "*"
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ApplicationName}-test/*
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ApplicationName}-prod/*
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:aws:transform/*
+              - Action:
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:DetachRolePolicy
+                  - iam:GetRole
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/*
+              - Action:
+                  - iam:PassRole
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-*
+              - Action:
+                  - lambda:CreateFunction
+                  - lambda:DeleteFunction
+                  - lambda:UpdateFunctionCode
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationName}-*
+              - Action:
+                  - s3:GetObject
+                Effect: Allow
+                Resource:
+                  Fn::Sub:
+                    - ${Arn}/*
+                    - Arn:
+                        Fn::ImportValue:
+                          Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
 
   CodeBuildRole:
     Type: AWS::IAM::Role
