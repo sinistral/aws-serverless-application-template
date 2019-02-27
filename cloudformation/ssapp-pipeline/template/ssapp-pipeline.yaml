@@ -16,11 +16,9 @@ Parameters:
   GitHubPersonalAccessTokenSecretName:
     Type: String
     Default: github-personal-access-token
-    NoEcho: true
 
   GitHubUser:
     Type: String
-    Default: github-user
 
   GitHubRepo:
     Type: String
@@ -359,7 +357,7 @@ Resources:
               InputArtifacts:
                 - Name: repo
               OutputArtifacts:
-                - Name: ssapp_artifact
+                - Name: application_build_artifact
         - Name: Package
           Actions:
             - Name: Package
@@ -373,7 +371,7 @@ Resources:
                 PrimarySource: repo
               InputArtifacts:
                 - Name: repo
-                - Name: ssapp_artifact
+                - Name: application_build_artifact
               OutputArtifacts:
                 - Name: packaged-template
         - Name: DeployTest
