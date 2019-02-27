@@ -12,9 +12,16 @@ Parameters:
       - test
       - prod
 
+Globals:
+
+  Function:
+    Environment:
+      Variables:
+        DEPLOYMENT_STAGE: !Ref Stage
+
 Resources:
 
-  SsappLambdaFn:
+  LambdaFn:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../../../target/ssapp.zip
