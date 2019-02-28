@@ -83,7 +83,7 @@ Resources:
                 Effect: Allow
                 Resource:
                   Fn::Sub:
-                    - ${Arn}/*
+                    - ${Arn}/${AWS::StackName}/*
                     - Arn:
                         Fn::ImportValue:
                           Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
@@ -120,9 +120,9 @@ Resources:
                   - Fn::ImportValue:
                       Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
               - Action:
-                  - s3:PutObject
                   - s3:GetObject
                   - s3:GetObjectVersion
+                  - s3:PutObject
                 Effect: Allow
                 Resource:
                   - Fn::Sub:
@@ -216,7 +216,7 @@ Resources:
       Cache:
         Location:
           Fn::Sub:
-            - ${BucketName}/-codebuild-cache-/${AWS::StackName}
+            - ${BucketName}/${AWS::StackName}/codebuild-cache
             - BucketName:
                 Fn::ImportValue:
                   Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
@@ -255,7 +255,7 @@ Resources:
       Cache:
         Location:
           Fn::Sub:
-            - ${BucketName}/-codebuild-cache-/${AWS::StackName}
+            - ${BucketName}/${AWS::StackName}/codebuild-cache
             - BucketName:
                 Fn::ImportValue:
                   Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
@@ -288,7 +288,7 @@ Resources:
       Cache:
         Location:
           Fn::Sub:
-            - ${BucketName}/-codebuild-cache-/${AWS::StackName}
+            - ${BucketName}/${AWS::StackName}/codebuild-cache
             - BucketName:
                 Fn::ImportValue:
                   Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
