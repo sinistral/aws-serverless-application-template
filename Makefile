@@ -23,8 +23,6 @@ $(target-dir):
 
 # CloudFormation template validation
 
-.PHONY: validate
-
 $(target-dir)/%.yaml: %.yaml
 	mkdir -p $(@D)
 	aws --region ${AWS_REGION} \
@@ -38,7 +36,8 @@ $(target-dir)/%.json: %.json
 		| jq '{ Parameters: [ .[] |  { (.ParameterKey): .ParameterValue }  ] | add } '  \
 		| tee $@
 
-validate: $(validated-configs) $(validated-templates)
+.PHONY: cloudformation
+cloudformation: $(validated-configs) $(validated-templates)
 
 # Pipeline deployment
 
