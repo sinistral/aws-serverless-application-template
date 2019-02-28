@@ -1,0 +1,77 @@
+#!/bin/zsh
+
+function die {
+    echo $1
+    exit 1
+}
+
+while getopts ":d:n:" o; do
+    case "${o}" in
+        d) clone_dir=${OPTARG}
+           ;;
+        n) app_namespace=${OPTARG}
+           ;;
+        *) die "Invalid arguments: $*"
+           ;;
+    esac
+done
+
+[[ -d ${clone_dir} ]] && die "Target directory exists; cowardly refusing to overwrite."
+
+echo app directory: ${clone_dir?The directory into which to clone is required}
+echo app namespace: ${app_namespace?A ClojureScript app namespace is required}
+app_name=$(echo ${app_namespace} | tr "." " " | xargs -n 1 | tail -n 1)
+echo app name: ${app_name?Failed to determine app name from namespace}
+
+app_ns_pre_term_count=$(echo $(($(echo ${app_namespace} | tr "." " " | xargs -n 1 | wc -l)-1)))
+app_ns_pre=$(echo ${app_namespace} | cut -d "." -f 1-${app_ns_pre_term_count})
+echo top-level namespace: ${app_ns_pre?Failed to determine top-level namespace from app namespace}
+
+mkdir -p ${clone_dir}
+cp -R * ${clone_dir}/
+
+# Create and populate CLJS project directory hierarchy
+
+for subdir in build source test; do
+    for dir in $(find ${clone_dir}/${subdir} -name "ssapp*" -type d -print); do
+        dir_replacement=$(echo ${app_namespace} | sed "s|\.|\/|g")
+        target_dir=$(echo ${dir} | sed "s|ssapp|${dir_replacement}|g")
+        mkdir -p $(dirname ${target_dir})
+        mv ${dir} ${target_dir}
+    done
+done
+
+# Rename files
+
+for file in $(find ${clone_dir} -name "ssapp*" -type f -print); do
+    target_dir=$(dirname ${file})
+    source_fname=$(basename ${file})
+    target_fname=$(echo ${source_fname} | sed "s/ssapp/${app_name}/")
+	mv ${file} ${target_dir}/${target_fname}
+done
+
+# Rename directories
+
+for dir in $(find -d ${clone_dir} -name "ssapp*" -type d -print); do
+    target_dir=$(echo ${dir} | sed "s|ssapp|${app_name}|g")
+    mv ${dir} ${target_dir}
+done
+
+# Fix CLJS app namespace references
+
+for cljs in $(grep -rl ssapp ${clone_dir} | grep \.clj); do
+    sed -i "" "s/ssapp\./${app_namespace}./g" ${cljs}
+done
+sed -i "" "s/ssapp\./${app_namespace}./g" ${clone_dir}/build.boot
+sed -i "" "s/Handler: ssapp\./Handler: ${app_namespace}./g" ${clone_dir}/cloudformation/${app_name}/template/${app_name}.yaml
+
+# Fix remaining app name references
+
+for file in $(grep -rl ssapp ${clone_dir}); do
+    sed -i "" "s/ssapp/${app_name}/g" ${file}
+done
+sed -i "" "s/aws-serverless-application-template/${app_name}/g" ${clone_dir}/cloudformation/${app_name}-pipeline/config/config.json
+
+# Final cleanup
+
+rm -rf ${clone_dir}/{.git,clone,README.md}

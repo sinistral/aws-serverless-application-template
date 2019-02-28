@@ -89,3 +89,9 @@ $(target-dir)/$(application-name).zip: test build
 
 .PHONY: zip
 zip: $(target-dir)/$(application-name).zip
+
+# Clone for new application
+
+.PHONY: clone
+clone: very-clean
+	./clone -d $(clone-dir) -n $(project-namespace)
