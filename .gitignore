@@ -1,0 +1,15 @@
+.DS_Store
+*.swp
+*.class
+
+build/
+out/
+target/
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+.nrepl-port
+.cljs_node_repl

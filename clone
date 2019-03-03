@@ -72,6 +72,10 @@ for file in $(grep -rl ssapp ${clone_dir}); do
 done
 sed -i "" "s/aws-serverless-application-template/${app_name}/g" ${clone_dir}/cloudformation/${app_name}-pipeline/config/config.json
 
+# Copy supporting files.
+
+cp ./.gitignore ${clone_dir}
+
 # Final cleanup
 
 rm -rf ${clone_dir}/{.git,clone,README.md}
