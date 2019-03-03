@@ -27,7 +27,7 @@ phases:
         else
           s3path=${TEMPLATE_PREFIX}/${CODEBUILD_BUILD_ID}
         fi
-      - make validate
+      - make cloudformation
       - |
         aws --region ${AWS_REGION} cloudformation package \
           --s3-bucket ${TEMPLATE_BUCKET} \
