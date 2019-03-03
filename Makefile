@@ -8,6 +8,7 @@ validated-templates    := $(patsubst %, $(target-dir)/%, $(templates))
 validated-configs      := $(patsubst %, $(target-dir)/%, $(configs))
 
 AWS_REGION             ?= eu-central-1
+bootstrap-stack-name   ?= bootstrap
 
 pkgd-pipeline-template := $(target-dir)/cloudformation/$(application-name)-pipeline/template/$(application-name)-pipeline-packaged.yaml
 pkgd-pipeline-config   := $(target-dir)/cloudformation/$(application-name)-pipeline/config/config.json
@@ -46,7 +47,7 @@ $(pkgd-pipeline-template): $(target-dir)/cloudformation/$(application-name)-pipe
 		cloudformation package \
 		--s3-bucket $(shell aws --region $(AWS_REGION) \
 						cloudformation describe-stack-resources \
-						--stack-name bootstrap \
+						--stack-name $(bootstrap-stack-name) \
 						| jq -r '.StackResources | map(select(.LogicalResourceId == "LocalBuildArtifactS3Bucket")) | .[0] | .PhysicalResourceId') \
 		--s3-prefix $(USER)/cloudformation-package/$(application-name) \
 		--output-template-file $@ \
@@ -63,7 +64,7 @@ deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 								  $(pkgd-pipeline-config)) \
 		--s3-bucket $(shell aws --region $(AWS_REGION) \
 						cloudformation describe-stack-resources \
-						--stack-name bootstrap \
+						--stack-name $(bootstrap-stack-name) \
 						| jq -r '.StackResources | map(select(.LogicalResourceId == "LocalBuildArtifactS3Bucket")) | .[0] | .PhysicalResourceId') \
 		--s3-prefix $(USER)/cloudformation-deploy/$(application-name) \
 		--stack-name $(application-name)-pipeline \
