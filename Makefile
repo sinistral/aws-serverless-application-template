@@ -95,4 +95,4 @@ zip: $(target-dir)/$(application-name).zip
 
 .PHONY: clone
 clone: very-clean
-	./clone -d $(clone-dir) -n $(project-namespace)
+	./clone -a $(application-name) -d $(clone-dir) -n $(application-namespace)

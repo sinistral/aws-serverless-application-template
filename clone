@@ -5,8 +5,10 @@ function die {
     exit 1
 }
 
-while getopts ":d:n:" o; do
+while getopts ":a:d:n:" o; do
     case "${o}" in
+        a) app_name=${OPTARG}
+           ;;
         d) clone_dir=${OPTARG}
            ;;
         n) app_namespace=${OPTARG}
@@ -20,8 +22,11 @@ done
 
 echo app directory: ${clone_dir?The directory into which to clone is required}
 echo app namespace: ${app_namespace?A ClojureScript app namespace is required}
-app_name=$(echo ${app_namespace} | tr "." " " | xargs -n 1 | tail -n 1)
-echo app name: ${app_name?Failed to determine app name from namespace}
+
+if [[ -z ${app_name} ]]; then
+    app_name=$(echo ${app_namespace} | tr "." " " | xargs -n 1 | tail -n 1)
+fi
+echo app name: ${app_name?No app name specified, and it could not be determined from the namespace}
 
 app_ns_pre_term_count=$(echo $(($(echo ${app_namespace} | tr "." " " | xargs -n 1 | wc -l)-1)))
 app_ns_pre=$(echo ${app_namespace} | cut -d "." -f 1-${app_ns_pre_term_count})
