@@ -37,7 +37,7 @@ cp -R * ${clone_dir}/
 
 # Create and populate CLJS project directory hierarchy
 
-for subdir in build source test; do
+for subdir in boot-build source test; do
     for dir in $(find ${clone_dir}/${subdir} -name "ssapp*" -type d -print); do
         dir_replacement=$(echo ${app_namespace} | sed "s|\.|\/|g")
         target_dir=$(echo ${dir} | sed "s|ssapp|${dir_replacement}|g")

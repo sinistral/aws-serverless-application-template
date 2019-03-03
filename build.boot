@@ -1,7 +1,7 @@
 
 (set-env!
-  :source-paths   #{"build/resource/cljs-config"
-                    "build/source"
+  :source-paths   #{"boot-build/resource/cljs-config"
+                    "boot-build/source"
                     "source/cljc"
                     "source/cljs"
                     "test"})
