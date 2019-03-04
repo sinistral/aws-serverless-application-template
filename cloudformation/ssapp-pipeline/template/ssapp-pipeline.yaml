@@ -75,9 +75,13 @@ Resources:
                   - lambda:CreateFunction
                   - lambda:DeleteFunction
                   - lambda:UpdateFunctionCode
+                  - lambda:ListTags
+                  - lambda:TagResource
+                  - lambda:UntagResource
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationName}-*
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationName}-test*
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationName}-prod*
               - Action:
                   - s3:GetObject
                 Effect: Allow
