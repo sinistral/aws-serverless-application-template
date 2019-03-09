@@ -248,6 +248,9 @@ Resources:
       TimeoutInMinutes: 15
       Triggers:
         Webhook: true
+        FilterGroups:
+          - - Pattern: PULL_REQUEST_CREATED, PULL_REQUEST_UPDATED, PULL_REQUEST_REOPENED
+              Type: EVENT
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
