@@ -19,15 +19,21 @@ phases:
 
   post_build:
     commands:
-      - mkdir -p codebuild-artifacts
-      - mv target/ssapp.zip codebuild-artifacts
-
-cache:
-  paths:
-    - /root/.m2/**/*
+      - mkdir codebuild-artifacts
+      - |
+        if [ "$(echo X$(echo ${CODEBUILD_SOURCE_VERSION} | cut -d '/' -f 1))" = "Xpr" ]; then
+          echo "Pull Request build detected; no artifacts will be produced."
+          touch codebuild-artifacts/sentinel
+        else
+          cp target/ssapp.zip codebuild-artifacts
+        fi
 
 artifacts:
 
   base-directory: codebuild-artifacts
   files: ['**/*']
   name: ssapp
+
+cache:
+  paths:
+    - /root/.m2/**/*
