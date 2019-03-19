@@ -9,10 +9,6 @@ Parameters:
     Type: String
     Default: ssapp
 
-  BootstrapStackName:
-    Type: String
-    Default: bootstrap
-
   GitHubBranch:
     Type: String
     Default: master
@@ -21,9 +17,6 @@ Parameters:
     Type: String
     Default: github-personal-access-token
 
-  GitHubUser:
-    Type: String
-
   GitHubRepo:
     Type: String
     Default: ssapp
@@ -31,7 +24,13 @@ Parameters:
   GitHubRepoUrl:
     Type: String
 
+  GitHubUser:
+    Type: String
+
 Resources:
+
+  BuildArtifactS3Bucket:
+    Type: AWS::S3::Bucket
 
   CloudFormationRole:
     Type: AWS::IAM::Role
@@ -91,10 +90,8 @@ Resources:
                 Effect: Allow
                 Resource:
                   Fn::Sub:
-                    - ${Arn}/${AWS::StackName}/*
-                    - Arn:
-                        Fn::ImportValue:
-                          Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
+                    - ${Arn}/cloudformation/*
+                    - Arn: !GetAtt [BuildArtifactS3Bucket, Arn]
 
   CodeBuildRole:
     Type: AWS::IAM::Role
@@ -124,9 +121,7 @@ Resources:
               - Action:
                   - s3:ListBucket
                 Effect: Allow
-                Resource:
-                  - Fn::ImportValue:
-                      Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
+                Resource: !GetAtt [BuildArtifactS3Bucket, Arn]
               - Action:
                   - s3:GetObject
                   - s3:GetObjectVersion
@@ -135,9 +130,7 @@ Resources:
                 Resource:
                   - Fn::Sub:
                       - ${Arn}/*
-                      - Arn:
-                          Fn::ImportValue:
-                            Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
+                      - Arn: !GetAtt [BuildArtifactS3Bucket, Arn]
               - Action:
                   - cloudformation:ValidateTemplate
                 Effect: Allow
@@ -170,9 +163,7 @@ Resources:
               - Action:
                   - s3:ListBucket
                 Effect: Allow
-                Resource:
-                  - Fn::ImportValue:
-                      Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
+                Resource: !GetAtt [BuildArtifactS3Bucket, Arn]
               - Action:
                   - s3:DeleteObject
                   - s3:GetBucketPolicy
@@ -183,9 +174,7 @@ Resources:
                 Resource:
                   - Fn::Sub:
                       - ${Arn}/*
-                      - Arn:
-                          Fn::ImportValue:
-                            Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketArn
+                      - Arn: !GetAtt [BuildArtifactS3Bucket, Arn]
               - Action:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
@@ -222,12 +211,7 @@ Resources:
         Type: NO_ARTIFACTS
       BadgeEnabled: false
       Cache:
-        Location:
-          Fn::Sub:
-            - ${BucketName}/${AWS::StackName}/codebuild-cache
-            - BucketName:
-                Fn::ImportValue:
-                  Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
+        Location: !Sub ${BuildArtifactS3Bucket}/codebuild/cache
         Type: S3
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
@@ -267,12 +251,7 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       Cache:
-        Location:
-          Fn::Sub:
-            - ${BucketName}/${AWS::StackName}/codebuild-cache
-            - BucketName:
-                Fn::ImportValue:
-                  Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
+        Location: !Sub ${BuildArtifactS3Bucket}/codebuild/cache
         Type: S3
       Environment:
         Type: LINUX_CONTAINER
@@ -300,12 +279,7 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       Cache:
-        Location:
-          Fn::Sub:
-            - ${BucketName}/${AWS::StackName}/codebuild-cache
-            - BucketName:
-                Fn::ImportValue:
-                  Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
+        Location: !Sub ${BuildArtifactS3Bucket}/codebuild/cache
         Type: S3
       Environment:
         Type: LINUX_CONTAINER
@@ -317,11 +291,9 @@ Resources:
           - Name: AWS_REGION
             Value: !Ref AWS::Region
           - Name: TEMPLATE_BUCKET
-            Value:
-              Fn::ImportValue:
-                Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
+            Value: !Ref BuildArtifactS3Bucket
           - Name: TEMPLATE_PREFIX
-            Value: !Ref AWS::StackName
+            Value: cloudformation
       ServiceRole: !GetAtt [CodeBuildRole, Arn]
       Source:
         BuildSpec: cloudformation-buildspec.yaml
@@ -336,9 +308,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       ArtifactStore:
-        Location:
-          Fn::ImportValue:
-            Fn::Sub: ${BootstrapStackName}:BuildArtifactS3BucketName
+        Location: !Ref BuildArtifactS3Bucket
         Type: S3
       RestartExecutionOnUpdate: true
       RoleArn: !GetAtt [CodePipelineRole, Arn]
