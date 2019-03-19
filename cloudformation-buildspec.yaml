@@ -31,7 +31,7 @@ phases:
       - |
         aws --region ${AWS_REGION} cloudformation package \
           --s3-bucket ${TEMPLATE_BUCKET} \
-          --s3-prefix ${s3path}/cloudformation-package/${APPLICATION_NAME} \
+          --s3-prefix ${s3path} \
           --output-template-file target/${cf_tmpl_dir}/${APPLICATION_NAME}.yaml \
           --template-file ${cf_tmpl_dir}/${APPLICATION_NAME}.yaml
   post_build:
