@@ -66,6 +66,7 @@ Resources:
                   - iam:GetRole
                   - iam:AttachRolePolicy
                   - iam:DetachRolePolicy
+                  - iam:PutRolePolicy
                 Effect: Allow
                 Resource:
                   - !Sub arn:aws:iam::${AWS::AccountId}:role/*
