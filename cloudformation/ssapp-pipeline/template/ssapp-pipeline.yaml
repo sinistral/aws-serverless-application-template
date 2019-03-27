@@ -1,5 +1,5 @@
 ---
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   A CodePipeline to deploy a sinistral (AWS) serverless application.
 
@@ -61,11 +61,11 @@ Resources:
                   - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ApplicationName}-prod/*
                   - !Sub arn:aws:cloudformation:${AWS::Region}:aws:transform/*
               - Action:
-                  - iam:AttachRolePolicy
                   - iam:CreateRole
                   - iam:DeleteRole
-                  - iam:DetachRolePolicy
                   - iam:GetRole
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
                 Effect: Allow
                 Resource:
                   - !Sub arn:aws:iam::${AWS::AccountId}:role/*
