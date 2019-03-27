@@ -78,6 +78,7 @@ Resources:
                   - lambda:CreateFunction
                   - lambda:DeleteFunction
                   - lambda:UpdateFunctionCode
+                  - lambda:UpdateFunctionConfiguration
                   - lambda:ListTags
                   - lambda:TagResource
                   - lambda:UntagResource
