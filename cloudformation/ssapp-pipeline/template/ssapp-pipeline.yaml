@@ -372,7 +372,7 @@ Resources:
                 ChangeSetName: codepipeline-deploy
                 RoleArn:
                   Fn::GetAtt: [CloudFormationRole, Arn]
-                StackName: ssapp-test
+                StackName: ${ApplicationName}-test
                 TemplateConfiguration: packaged-template::config/config-test.json
                 TemplatePath: !Sub packaged-template::template/${ApplicationName}.yaml
               InputArtifacts:
