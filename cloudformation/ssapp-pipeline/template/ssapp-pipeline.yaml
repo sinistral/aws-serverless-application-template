@@ -135,11 +135,6 @@ Resources:
                 Effect: Allow
                 Resource:
                   - "*"
-              - Action:
-                  - ssm:GetParameters
-                Effect: Allow
-                Resource:
-                  - !Sub arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter/3rd-party-auth/codecov.io/repo-upload-token-*
 
   CodePipelineRole:
     Type: AWS::IAM::Role
