@@ -64,17 +64,14 @@ Resources:
                   - iam:CreateRole
                   - iam:DeleteRole
                   - iam:GetRole
+                  - iam:PassRole
                   - iam:AttachRolePolicy
                   - iam:DetachRolePolicy
                   - iam:PutRolePolicy
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:iam::${AWS::AccountId}:role/*
-              - Action:
-                  - iam:PassRole
-                Effect: Allow
-                Resource:
-                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-test*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-prod*
               - Action:
                   - lambda:CreateFunction
                   - lambda:DeleteFunction
