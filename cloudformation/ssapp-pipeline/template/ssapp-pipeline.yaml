@@ -66,6 +66,7 @@ Resources:
                   - iam:GetRole
                   - iam:PassRole
                   - iam:AttachRolePolicy
+                  - iam:DeleteRolePolicy
                   - iam:DetachRolePolicy
                   - iam:PutRolePolicy
                 Effect: Allow
@@ -73,13 +74,7 @@ Resources:
                   - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-test*
                   - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-prod*
               - Action:
-                  - lambda:CreateFunction
-                  - lambda:DeleteFunction
-                  - lambda:UpdateFunctionCode
-                  - lambda:UpdateFunctionConfiguration
-                  - lambda:ListTags
-                  - lambda:TagResource
-                  - lambda:UntagResource
+                  - lambda:*
                 Effect: Allow
                 Resource:
                   - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationName}-test*
