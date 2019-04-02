@@ -66,6 +66,7 @@ Resources:
                   - iam:GetRole
                   - iam:PassRole
                   - iam:AttachRolePolicy
+                  - iam:DeleteRolePolicy
                   - iam:DetachRolePolicy
                   - iam:PutRolePolicy
                 Effect: Allow
