@@ -66,7 +66,7 @@ $(pkgd-pipeline-template): $(target-dir)/cloudformation/$(application-name)-pipe
 		--output-template-file $@ \
 		--template-file $<
 
-.PHONY: deploy-pipeline pipeline
+.PHONY: deploy-pipeline pipeline destroy-pipeline
 
 deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 	aws --region $(AWS_REGION) \
@@ -84,6 +84,17 @@ deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 		--template-file $<
 
 pipeline: deploy-pipeline
+
+destroy-pipeline:
+	aws --region ${AWS_REGION} \
+		s3 rb --force \
+		s3://$(shell aws --region ${AWS_REGION} \
+			   cloudformation describe-stack-resources \
+			   --stack-name $(application-stack-name)-pipeline \
+			   | jq -r '.StackResources | map(select(.ResourceType=="AWS::S3::Bucket") | .PhysicalResourceId) | .[]')
+	aws --region ${AWS_REGION} \
+		cloudformation delete-stack \
+		--stack-name $(application-stack-name)-pipeline
 
 # Lambda build
 
