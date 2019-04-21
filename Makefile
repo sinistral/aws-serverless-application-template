@@ -1,6 +1,11 @@
 
-application-name       := ssapp
+# User-configurable deployment variables
 stack-qualifier        ?=
+AWS_REGION             ?= eu-central-1
+bootstrap-stack-name   ?= bootstrap
+
+# Internal variables
+application-name       := ssapp
 application-stack-name := $(shell if [ -z "$(stack-qualifier)" ]; \
 							  then echo $(application-name); \
 							  else echo $(application-name)-$(stack-qualifier); \
@@ -13,13 +18,8 @@ is_principal           := $(shell if [ -z "$(stack-qualifier)" ]; \
 target-dir             := target
 templates              := $(shell find cloudformation -path "*/template/*.yaml")
 configs                := $(shell find cloudformation -path "*/config/*.json")
-
 validated-templates    := $(patsubst %, $(target-dir)/%, $(templates))
 validated-configs      := $(patsubst %, $(target-dir)/%, $(configs))
-
-AWS_REGION             ?= eu-central-1
-bootstrap-stack-name   ?= bootstrap
-
 pkgd-pipeline-template := $(target-dir)/cloudformation/$(application-name)-pipeline/template/$(application-name)-pipeline-packaged.yaml
 pkgd-pipeline-config   := $(target-dir)/cloudformation/$(application-name)-pipeline/config/config.json
 
