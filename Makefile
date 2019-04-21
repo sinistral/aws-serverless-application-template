@@ -1,6 +1,6 @@
 
 application-name       := ssapp
-stack-qualifier        ?= ""
+stack-qualifier        ?=
 application-stack-name := $(shell if [ -z "$(stack-qualifier)" ]; \
 							  then echo $(application-name); \
 							  else echo $(application-name)-$(stack-qualifier); \
@@ -66,7 +66,7 @@ $(pkgd-pipeline-template): $(target-dir)/cloudformation/$(application-name)-pipe
 		--output-template-file $@ \
 		--template-file $<
 
-.PHONY: deploy-pipeline pipeline destroy-pipeline
+.PHONY: deploy-pipeline pipeline destroy-pipeline destroy-application
 
 deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 	aws --region $(AWS_REGION) \
@@ -85,7 +85,16 @@ deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 
 pipeline: deploy-pipeline
 
-destroy-pipeline:
+destroy-application:
+	if [ -z "$(stack-qualifier)" ]; then /usr/bin/false; fi
+# Application destruction is supported only for alternate deployments.
+	aws --region ${AWS_REGION} \
+		cloudformation delete-stack \
+		--stack-name $(application-stack-name)-test
+# Intentionally only "test"; "prod" shouldn't exist for alternates.
+
+destroy-pipeline: destroy-application
+	if [ -z "$(stack-qualifier)" ]; then /usr/bin/false; fi
 	aws --region ${AWS_REGION} \
 		s3 rb --force \
 		s3://$(shell aws --region ${AWS_REGION} \
