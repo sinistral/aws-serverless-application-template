@@ -1,5 +1,15 @@
 
 application-name       := ssapp
+stack-qualifier        ?= ""
+application-stack-name := $(shell if [ -z "$(stack-qualifier)" ]; \
+							  then echo $(application-name); \
+							  else echo $(application-name)-$(stack-qualifier); \
+							fi)
+is_principal           := $(shell if [ -z "$(stack-qualifier)" ]; \
+							  then echo true; \
+							  else echo false; \
+							fi)
+
 target-dir             := target
 templates              := $(shell find cloudformation -path "*/template/*.yaml")
 configs                := $(shell find cloudformation -path "*/config/*.json")
@@ -33,8 +43,11 @@ $(target-dir)/%.yaml: %.yaml
 
 $(target-dir)/%.json: %.json
 	mkdir -p $(@D)
-	sed -e "s|__DEPLOYMENT_TYPE__|$(deployment-type)|" $< \
-		| jq '{ Parameters: [ .[] |  { (.ParameterKey): .ParameterValue }  ] | add } '  \
+	cat $< \
+		| sed -e "s|__APPLICATION_NAME__|$(application-name)|" \
+		| sed -e "s|__APPLICATION_STACK_NAME__|$(application-stack-name)|" \
+		| sed -e "s|__IS_PRINCIPAL__|$(is_principal)|" \
+		| jq '{ Parameters: [ .[] |  { (.ParameterKey): .ParameterValue }  ] | add } ' \
 		| tee $@
 
 .PHONY: cloudformation
@@ -67,7 +80,7 @@ deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 						--stack-name $(bootstrap-stack-name) \
 						| jq -r '.StackResources | map(select(.LogicalResourceId == "LocalBuildArtifactS3Bucket")) | .[0] | .PhysicalResourceId') \
 		--s3-prefix $(USER)/cloudformation-deploy/$(application-name) \
-		--stack-name $(application-name)-pipeline \
+		--stack-name $(application-stack-name)-pipeline \
 		--template-file $<
 
 pipeline: deploy-pipeline

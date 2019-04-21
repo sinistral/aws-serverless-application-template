@@ -7,11 +7,12 @@ Parameters:
 
   ApplicationName:
     Type: String
-    Default: ssapp
+
+  ApplicationStackName:
+    Type: String
 
   GitHubBranch:
     Type: String
-    Default: master
 
   GitHubPersonalAccessTokenSecretName:
     Type: String
@@ -19,13 +20,24 @@ Parameters:
 
   GitHubRepo:
     Type: String
-    Default: ssapp
 
   GitHubRepoUrl:
     Type: String
 
   GitHubUser:
     Type: String
+
+  IsPrincipal:
+    Type: String
+
+Conditions:
+
+  IsPrincipal:
+    Fn::Equals: ["true", !Ref IsPrincipal]
+
+  IsAlternate:
+    Fn::Not:
+      - Fn::Equals: ["true", !Ref IsPrincipal]
 
 Resources:
 
@@ -57,8 +69,8 @@ Resources:
                   - cloudformation:ExecuteChangeSet
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ApplicationName}-test/*
-                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ApplicationName}-prod/*
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ApplicationStackName}-test/*
+                  - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ApplicationStackName}-prod/*
                   - !Sub arn:aws:cloudformation:${AWS::Region}:aws:transform/*
               - Action:
                   - iam:CreateRole
@@ -71,14 +83,14 @@ Resources:
                   - iam:PutRolePolicy
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-test*
-                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationName}-prod*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationStackName}-test*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/${ApplicationStackName}-prod*
               - Action:
                   - lambda:*
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationName}-test*
-                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationName}-prod*
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationStackName}-test*
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ApplicationStackName}-prod*
               - Action:
                   - s3:GetObject
                 Effect: Allow
@@ -193,6 +205,7 @@ Resources:
 
   PullRequestCodeBuildProject:
     Type: AWS::CodeBuild::Project
+    Condition: IsPrincipal
     Properties:
       Description: >-
         CodeBuild project to build GitHub Pull Requests.
@@ -361,7 +374,7 @@ Resources:
                 ChangeSetName: codepipeline-deploy
                 RoleArn:
                   Fn::GetAtt: [CloudFormationRole, Arn]
-                StackName: !Sub ${ApplicationName}-test
+                StackName: !Sub ${ApplicationStackName}-test
                 TemplateConfiguration: packaged-template::config/config-test.json
                 TemplatePath: !Sub packaged-template::template/${ApplicationName}.yaml
               InputArtifacts:
@@ -379,49 +392,55 @@ Resources:
                 ChangeSetName: codepipeline-deploy
                 RoleArn:
                   Fn::GetAtt: [CloudFormationRole, Arn]
-                StackName: !Sub ${ApplicationName}-test
+                StackName: !Sub ${ApplicationStackName}-test
               RunOrder: 2
-        - Name: Approval
-          Actions:
-            - Name: Manual
-              ActionTypeId:
-                Category: Approval
-                Owner: AWS
-                Provider: Manual
-                Version: 1
-              InputArtifacts: []
-              OutputArtifacts: []
-        - Name: DeployProd
-          Actions:
-            - Name: CreateCFChangeSet
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: 1
-              Configuration:
-                ActionMode: CHANGE_SET_REPLACE
-                Capabilities: CAPABILITY_NAMED_IAM
-                ChangeSetName: codepipeline-deploy
-                RoleArn:
-                  Fn::GetAtt: [CloudFormationRole, Arn]
-                StackName: !Sub ${ApplicationName}-prod
-                TemplateConfiguration: packaged-template::config/config-prod.json
-                TemplatePath: !Sub packaged-template::template/${ApplicationName}.yaml
-              InputArtifacts:
-                - Name: packaged-template
-              RunOrder: 1
-            - Name: ExecuteCFChangeSet
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: 1
-              Configuration:
-                ActionMode: CHANGE_SET_EXECUTE
-                Capabilities: CAPABILITY_NAMED_IAM
-                ChangeSetName: codepipeline-deploy
-                RoleArn:
-                  Fn::GetAtt: [CloudFormationRole, Arn]
-                StackName: !Sub ${ApplicationName}-prod
-              RunOrder: 2
+        - Fn::If:
+            - IsPrincipal
+            - Name: Approval
+              Actions:
+                - Name: Manual
+                  ActionTypeId:
+                    Category: Approval
+                    Owner: AWS
+                    Provider: Manual
+                    Version: 1
+                  InputArtifacts: []
+                  OutputArtifacts: []
+            - !Ref AWS::NoValue
+        - Fn::If:
+            - IsPrincipal
+            - Name: DeployProd
+              Actions:
+                - Name: CreateCFChangeSet
+                  ActionTypeId:
+                    Category: Deploy
+                    Owner: AWS
+                    Provider: CloudFormation
+                    Version: 1
+                  Configuration:
+                    ActionMode: CHANGE_SET_REPLACE
+                    Capabilities: CAPABILITY_NAMED_IAM
+                    ChangeSetName: codepipeline-deploy
+                    RoleArn:
+                      Fn::GetAtt: [CloudFormationRole, Arn]
+                    StackName: !Sub ${ApplicationStackName}-prod
+                    TemplateConfiguration: packaged-template::config/config-prod.json
+                    TemplatePath: !Sub packaged-template::template/${ApplicationName}.yaml
+                  InputArtifacts:
+                    - Name: packaged-template
+                  RunOrder: 1
+                - Name: ExecuteCFChangeSet
+                  ActionTypeId:
+                    Category: Deploy
+                    Owner: AWS
+                    Provider: CloudFormation
+                    Version: 1
+                  Configuration:
+                    ActionMode: CHANGE_SET_EXECUTE
+                    Capabilities: CAPABILITY_NAMED_IAM
+                    ChangeSetName: codepipeline-deploy
+                    RoleArn:
+                      Fn::GetAtt: [CloudFormationRole, Arn]
+                    StackName: !Sub ${ApplicationStackName}-prod
+                  RunOrder: 2
+            - !Ref AWS::NoValue
