@@ -125,14 +125,14 @@ test:
 build:
 	boot --no-colors -- build
 
-$(target-dir)/$(application-name).zip: test build
+$(target-dir)/lambda-deployment-package.zip: test build
 	rm -rf target/node_modules/aws-sdk
 	cd target \
-		&& zip --quiet --recurse-paths $(application-name).zip * \
+		&& zip --quiet --recurse-paths lambda-deployment-package.zip * \
 		&& cd -
 
-.PHONY: zip
-zip: $(target-dir)/$(application-name).zip
+.PHONY: lambda-deployment-package
+lambda-deployment-package: $(target-dir)/lambda-deployment-package.zip
 
 # Clone for new application
 

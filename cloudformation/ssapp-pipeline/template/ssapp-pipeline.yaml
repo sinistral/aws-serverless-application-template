@@ -262,7 +262,7 @@ Resources:
         Image: aws/codebuild/java:openjdk-8
         EnvironmentVariables:
           - Name: GOAL
-            Value: zip
+            Value: lambda-deployment-package
       ServiceRole: !GetAtt [CodeBuildRole, Arn]
       Source:
         BuildSpec: buildspec.yaml

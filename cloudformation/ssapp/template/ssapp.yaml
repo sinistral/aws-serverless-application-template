@@ -24,7 +24,7 @@ Resources:
   LambdaFn:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../../../target/ssapp.zip
+      CodeUri: ../../../target/lambda-deployment-package.zip
       Handler: ssapp.aws.lambda.handler
       MemorySize: 128
       Runtime: nodejs8.10
