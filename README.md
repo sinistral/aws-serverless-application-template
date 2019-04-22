@@ -20,7 +20,32 @@ configuration][config] to provide access to the GitHub source, ...
   make pipeline
 ```
 
-... and the Pipeline will do the rest.
+... and the Pipeline will do the rest to deploy a so-called "principal"
+Pipeline to build, test and deploy into production the application.
+
+It is sometimes useful to deploy an alternate instance of the Pipeline and
+application to - for example - verify IAM permissions as the application grows
+in complexity and depends on more AWS services.  This is easily achieved by
+providing a qualifier to distinguish the alternate deployment from the
+principal:
+
+```
+  make pipeline stack-qualifier=dev-${USER}
+```
+
+Clean-up for alternate Pipelines and applications is provided by `destroy-*`
+goals:
+
+```
+  # tear everything (Pipeline & application) down
+  make destroy-pipeline stack-qualifier=dev-${USER}
+```
+
+```
+  # "Just the apps, ma'am"
+  make destroy-application stack-qualifier=dev-${USER}
+```
+
 
 ## License
 

@@ -1,15 +1,25 @@
 
-application-name       := ssapp
-target-dir             := target
-templates              := $(shell find cloudformation -path "*/template/*.yaml")
-configs                := $(shell find cloudformation -path "*/config/*.json")
-
-validated-templates    := $(patsubst %, $(target-dir)/%, $(templates))
-validated-configs      := $(patsubst %, $(target-dir)/%, $(configs))
-
+# User-configurable deployment variables
+stack-qualifier        ?=
 AWS_REGION             ?= eu-central-1
 bootstrap-stack-name   ?= bootstrap
 
+# Internal variables
+application-name       := ssapp
+application-stack-name := $(shell if [ -z "$(stack-qualifier)" ]; \
+							  then echo $(application-name); \
+							  else echo $(application-name)-$(stack-qualifier); \
+							fi)
+is_principal           := $(shell if [ -z "$(stack-qualifier)" ]; \
+							  then echo true; \
+							  else echo false; \
+							fi)
+
+target-dir             := target
+templates              := $(shell find cloudformation -path "*/template/*.yaml")
+configs                := $(shell find cloudformation -path "*/config/*.json")
+validated-templates    := $(patsubst %, $(target-dir)/%, $(templates))
+validated-configs      := $(patsubst %, $(target-dir)/%, $(configs))
 pkgd-pipeline-template := $(target-dir)/cloudformation/$(application-name)-pipeline/template/$(application-name)-pipeline-packaged.yaml
 pkgd-pipeline-config   := $(target-dir)/cloudformation/$(application-name)-pipeline/config/config.json
 
@@ -33,8 +43,11 @@ $(target-dir)/%.yaml: %.yaml
 
 $(target-dir)/%.json: %.json
 	mkdir -p $(@D)
-	sed -e "s|__DEPLOYMENT_TYPE__|$(deployment-type)|" $< \
-		| jq '{ Parameters: [ .[] |  { (.ParameterKey): .ParameterValue }  ] | add } '  \
+	cat $< \
+		| sed -e "s|__APPLICATION_NAME__|$(application-name)|" \
+		| sed -e "s|__APPLICATION_STACK_NAME__|$(application-stack-name)|" \
+		| sed -e "s|__IS_PRINCIPAL__|$(is_principal)|" \
+		| jq '{ Parameters: [ .[] |  { (.ParameterKey): .ParameterValue }  ] | add } ' \
 		| tee $@
 
 .PHONY: cloudformation
@@ -53,7 +66,7 @@ $(pkgd-pipeline-template): $(target-dir)/cloudformation/$(application-name)-pipe
 		--output-template-file $@ \
 		--template-file $<
 
-.PHONY: deploy-pipeline pipeline
+.PHONY: deploy-pipeline pipeline destroy-pipeline destroy-application
 
 deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 	aws --region $(AWS_REGION) \
@@ -67,10 +80,30 @@ deploy-pipeline: $(pkgd-pipeline-template) $(pkgd-pipeline-config)
 						--stack-name $(bootstrap-stack-name) \
 						| jq -r '.StackResources | map(select(.LogicalResourceId == "LocalBuildArtifactS3Bucket")) | .[0] | .PhysicalResourceId') \
 		--s3-prefix $(USER)/cloudformation-deploy/$(application-name) \
-		--stack-name $(application-name)-pipeline \
+		--stack-name $(application-stack-name)-pipeline \
 		--template-file $<
 
 pipeline: deploy-pipeline
+
+destroy-application:
+	if [ -z "$(stack-qualifier)" ]; then /usr/bin/false; fi
+# Application destruction is supported only for alternate deployments.
+	aws --region ${AWS_REGION} \
+		cloudformation delete-stack \
+		--stack-name $(application-stack-name)-test
+# Intentionally only "test"; "prod" shouldn't exist for alternates.
+
+destroy-pipeline: destroy-application
+	if [ -z "$(stack-qualifier)" ]; then /usr/bin/false; fi
+	aws --region ${AWS_REGION} \
+		s3 rb --force \
+		s3://$(shell aws --region ${AWS_REGION} \
+			   cloudformation describe-stack-resources \
+			   --stack-name $(application-stack-name)-pipeline \
+			   | jq -r '.StackResources | map(select(.ResourceType=="AWS::S3::Bucket") | .PhysicalResourceId) | .[]')
+	aws --region ${AWS_REGION} \
+		cloudformation delete-stack \
+		--stack-name $(application-stack-name)-pipeline
 
 # Lambda build
 
