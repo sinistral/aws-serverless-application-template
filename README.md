@@ -26,11 +26,14 @@ Pipeline to build, test and deploy into production the application.
 It is sometimes useful to deploy an alternate instance of the Pipeline and
 application to - for example - verify IAM permissions as the application grows
 in complexity and depends on more AWS services.  This is easily achieved by
-providing a qualifier to distinguish the alternate deployment from the
-principal:
+providing a qualifier and source configuration to distinguish the alternate
+deployment from the principal:
 
 ```
-  make pipeline stack-qualifier=dev-${USER}
+  make pipeline stack-qualifier=dev-${USER} \
+    github-user=sinistral \
+    github-repo=aws-serverless-application-template \
+    github-branch=develop.alt-stack
 ```
 
 Clean-up for alternate Pipelines and applications is provided by `destroy-*`

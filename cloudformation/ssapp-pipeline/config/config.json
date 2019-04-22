@@ -17,19 +17,19 @@
   },
   {
     "ParameterKey": "GitHubUser",
-    "ParameterValue": "sinistral"
+    "ParameterValue": "__GITHUB_USER__"
   },
   {
     "ParameterKey": "GitHubRepo",
-    "ParameterValue": "aws-serverless-application-template"
+    "ParameterValue": "__GITHUB_REPO__"
   },
   {
     "ParameterKey": "GitHubRepoUrl",
-    "ParameterValue": "https://github.com/sinistral/aws-serverless-application-template.git"
+    "ParameterValue": "__GITHUB_URL__"
   },
   {
     "ParameterKey": "GitHubBranch",
-    "ParameterValue": "master"
+    "ParameterValue": "__GITHUB_BRANCH__"
   },
   {
     "ParameterKey": "IsPrincipal",

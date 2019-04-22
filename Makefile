@@ -4,16 +4,22 @@ stack-qualifier        ?=
 AWS_REGION             ?= eu-central-1
 bootstrap-stack-name   ?= bootstrap
 
+github-user            ?= sinistral
+github-repo            ?= aws-serverless-application-template
+github-branch          ?= master
+
 # Internal variables
 application-name       := ssapp
 application-stack-name := $(shell if [ -z "$(stack-qualifier)" ]; \
 							  then echo $(application-name); \
 							  else echo $(application-name)-$(stack-qualifier); \
 							fi)
-is_principal           := $(shell if [ -z "$(stack-qualifier)" ]; \
+is-principal           := $(shell if [ -z "$(stack-qualifier)" ]; \
 							  then echo true; \
 							  else echo false; \
 							fi)
+
+github-url             := https://github.com/$(github-user)/$(github-repo).git
 
 target-dir             := target
 templates              := $(shell find cloudformation -path "*/template/*.yaml")
@@ -46,7 +52,11 @@ $(target-dir)/%.json: %.json
 	cat $< \
 		| sed -e "s|__APPLICATION_NAME__|$(application-name)|" \
 		| sed -e "s|__APPLICATION_STACK_NAME__|$(application-stack-name)|" \
-		| sed -e "s|__IS_PRINCIPAL__|$(is_principal)|" \
+		| sed -e "s|__GITHUB_USER__|$(github-user)|" \
+		| sed -e "s|__GITHUB_REPO__|$(github-repo)|" \
+		| sed -e "s|__GITHUB_URL__|$(github-url)|" \
+		| sed -e "s|__GITHUB_BRANCH__|$(github-branch)|" \
+		| sed -e "s|__IS_PRINCIPAL__|$(is-principal)|" \
 		| jq '{ Parameters: [ .[] |  { (.ParameterKey): .ParameterValue }  ] | add } ' \
 		| tee $@
 
