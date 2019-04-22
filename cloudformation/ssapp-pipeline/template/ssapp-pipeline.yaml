@@ -23,6 +23,7 @@ Parameters:
 
   GitHubRepoUrl:
     Type: String
+    Default: "--unused--"
 
   GitHubUser:
     Type: String
