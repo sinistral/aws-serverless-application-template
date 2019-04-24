@@ -25,7 +25,7 @@ phases:
           echo "Pull Request build detected; no artifacts will be produced."
           touch codebuild-artifacts/sentinel
         else
-          cp target/ssapp.zip codebuild-artifacts
+          cp target/lambda-deployment-package.zip codebuild-artifacts
         fi
 
 artifacts:

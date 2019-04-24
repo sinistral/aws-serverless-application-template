@@ -14,9 +14,8 @@ Parameters:
   GitHubBranch:
     Type: String
 
-  GitHubPersonalAccessTokenSecretName:
+  GitHubAccessTokenSecretName:
     Type: String
-    Default: github-personal-access-token
 
   GitHubRepo:
     Type: String
@@ -227,7 +226,7 @@ Resources:
       Source:
         Auth:
           Type: OAUTH
-          Resource: !Sub '{{resolve:secretsmanager:${GitHubPersonalAccessTokenSecretName}::token::}}'
+          Resource: !Sub '{{resolve:secretsmanager:${GitHubAccessTokenSecretName}::token::}}'
         BuildSpec: buildspec.yaml
         Location: !Ref GitHubRepoUrl
         ReportBuildStatus: true
@@ -262,7 +261,7 @@ Resources:
         Image: aws/codebuild/java:openjdk-8
         EnvironmentVariables:
           - Name: GOAL
-            Value: zip
+            Value: lambda-deployment-package
       ServiceRole: !GetAtt [CodeBuildRole, Arn]
       Source:
         BuildSpec: buildspec.yaml
@@ -326,7 +325,7 @@ Resources:
                 Version: 1
               Configuration:
                 Branch: !Ref GitHubBranch
-                OAuthToken: !Sub '{{resolve:secretsmanager:${GitHubPersonalAccessTokenSecretName}::token::}}'
+                OAuthToken: !Sub '{{resolve:secretsmanager:${GitHubAccessTokenSecretName}::token::}}'
                 Owner: !Ref GitHubUser
                 Repo: !Ref GitHubRepo
               OutputArtifacts:

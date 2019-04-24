@@ -12,8 +12,8 @@
     "ParameterValue": "bootstrap"
   },
   {
-    "ParameterKey": "GitHubPersonalAccessTokenSecretName",
-    "ParameterValue": "github-personal-access-token"
+    "ParameterKey": "GitHubAccessTokenSecretName",
+    "ParameterValue": "github-automation-token"
   },
   {
     "ParameterKey": "GitHubUser",
